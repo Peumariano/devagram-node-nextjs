@@ -31,4 +31,5 @@ const endPointCadastro =
     return res.status(405).json({erro : 'Metodo informado nao e valido'});
     };
 
-export default endPointCadastro;
+
+export default conectarMongoDB(endPointCadastro);
