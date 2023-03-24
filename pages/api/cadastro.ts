@@ -3,6 +3,7 @@ import type {RespostaPadraoMsg} from '../../types/RespostaPadraoMsg';
 import type {CadastroRequisicao} from '../../types/CadastroRequisicao';
 import {UsuarioModel} from '../../models/UsuarioModel';
 import {conectarMongoDB} from '../../middlewares/conectarMongoDB';
+import md5 from 'md5';
 
 const endPointCadastro =
     async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg>) =>{
@@ -25,7 +26,20 @@ const endPointCadastro =
             return res.status(400).json({erro: "Senha invalida"});
         }
 
-        await UsuarioModel.create(usuario);
+        //validar se ja existe esse usuario
+        const usuariosComMesmoEmail = await UsuarioModel.find({email: usuario.email});
+        if(usuariosComMesmoEmail && usuariosComMesmoEmail.length > 0){
+            return res.status(400).json({erro: 'Email já cadastrado'});
+        }
+
+        //salvar no banco de dados
+        const usuarioASerSalvo = {
+            nome : usuario.senha,
+            email: usuario.email,
+            senha : md5(usuario.senha)
+        };
+
+        await UsuarioModel.create(usuarioASerSalvo);
         return res.status(200).json({msg :'Usuario criado com sucesso'});
     }
     return res.status(405).json({erro : 'Metodo informado nao e valido'});
